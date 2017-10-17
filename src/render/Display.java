@@ -6,18 +6,18 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 public class Display {
-
 	// The window handle
 	private long window;
 
 	public void run() {
-		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
+		System.out.println("Running LWJGL " + Version.getVersion());
 
 		init();
 		loop();
@@ -46,7 +46,7 @@ public class Display {
 		GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE); // the window will be resizable
 
 		// Create the window
-		window = GLFW.glfwCreateWindow(300, 300, "Hello World!", MemoryUtil.NULL, MemoryUtil.NULL);
+		window = GLFW.glfwCreateWindow(1920, 1080, "window machine fixed", GLFW.glfwGetPrimaryMonitor(), 0);
 		if (window == MemoryUtil.NULL)
 			throw new RuntimeException("Failed to create the GLFW window");
 
@@ -58,54 +58,41 @@ public class Display {
 
 		// Get the thread stack and push a new frame
 		try (MemoryStack stack = MemoryStack.stackPush()) {
-			IntBuffer pWidth = stack.mallocInt(1); // int*
-			IntBuffer pHeight = stack.mallocInt(1); // int*
-
+			IntBuffer pWidth = stack.mallocInt(1); // Single int but in a buffer to make C happy
+			IntBuffer pHeight = stack.mallocInt(1); // Same as above
 			// Get the window size passed to glfwCreateWindow
-			glfwGetWindowSize(window, pWidth, pHeight);
-
+			GLFW.glfwGetWindowSize(window, pWidth, pHeight);
 			// Get the resolution of the primary monitor
-			GLFW.GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.lfwGetPrimaryMonitor());
-
+			GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
 			// Center the window
-			glfwSetWindowPos(
+			GLFW.glfwSetWindowPos(
 				window,
 				(vidmode.width() - pWidth.get(0)) / 2,
 				(vidmode.height() - pHeight.get(0)) / 2
 			);
-		} // the stack frame is popped automatically
-
+		}
 		// Make the OpenGL context current
 		GLFW.glfwMakeContextCurrent(window);
 		// Enable v-sync
 		GLFW.glfwSwapInterval(1);
-
 		// Make the window visible
 		GLFW.glfwShowWindow(window);
 	}
 
 	private void loop() {
-		// This line is critical for LWJGL's interoperation with GLFW's
-		// OpenGL context, or any context that is managed externally.
-		// LWJGL detects the context that is current in the current thread,
-		// creates the GLCapabilities instance and makes the OpenGL
-		// bindings available for use.
+		// Make Java work with OpenGL
 		GL.createCapabilities();
 
-		// Set the clear color
-		GL11.glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+		// Clear screen to color
+		GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
 		// Run the rendering loop until the user has attempted to close
-		// the window or has pressed the ESCAPE key.
-		while (!GLFW.glfwWindowShouldClose(window) ) {
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
-
-			glfwSwapBuffers(window); // swap the color buffers
-
-			// Poll for window events. The key callback above will only be
-			// invoked during this call.
-			glfwPollEvents();
+		// the window or has pressed the ESCAPE key
+		while (!GLFW.glfwWindowShouldClose(window)) {
+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); // Clear the window
+			GLFW.glfwSwapBuffers(window); // Pop it out of memory and on the screen
+			// Poll for GLFW events
+			GLFW.glfwPollEvents();
 		}
 	}
-
 }
