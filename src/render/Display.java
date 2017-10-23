@@ -2,7 +2,6 @@ package render;
 
 import java.nio.IntBuffer;
 
-import org.lwjgl.Version;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -13,22 +12,12 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 public class Display {
-	// The window handle
-	private long window;
+	
+	// The window pointer
+	public long window;
 
-	public void run() {
-		System.out.println("Running LWJGL " + Version.getVersion());
-
+	public Display() {
 		init();
-		loop();
-
-		// Free the window callbacks and destroy the window
-		Callbacks.glfwFreeCallbacks(window);
-		GLFW.glfwDestroyWindow(window);
-
-		// Terminate GLFW and free the error callback
-		GLFW.glfwTerminate();
-		GLFW.glfwSetErrorCallback(null).free();
 	}
 
 	private void init() {
@@ -77,22 +66,19 @@ public class Display {
 		GLFW.glfwSwapInterval(1);
 		// Make the window visible
 		GLFW.glfwShowWindow(window);
-	}
-
-	private void loop() {
+		
 		// Make Java work with OpenGL
 		GL.createCapabilities();
-
 		// Clear screen to color
 		GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-
-		// Run the rendering loop until the user has attempted to close
-		// the window or has pressed the ESCAPE key
-		while (!GLFW.glfwWindowShouldClose(window)) {
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); // Clear the window
-			GLFW.glfwSwapBuffers(window); // Pop it out of memory and on the screen
-			// Poll for GLFW events
-			GLFW.glfwPollEvents();
-		}
+	}
+	
+	public void destroy() {
+		// Free the window callbacks and destroy the window
+		Callbacks.glfwFreeCallbacks(window);
+		GLFW.glfwDestroyWindow(window);
+		// Terminate GLFW and free the error callback
+		GLFW.glfwTerminate();
+		GLFW.glfwSetErrorCallback(null).free();
 	}
 }
