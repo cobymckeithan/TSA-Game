@@ -42,7 +42,7 @@ public class Display {
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
 		GLFW.glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
 			if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE)
-				GLFW.glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+				GLFW.glfwSetWindowShouldClose(window, true); // Close window on escape key release
 		});
 
 		// Get the thread stack and push a new frame
@@ -71,6 +71,13 @@ public class Display {
 		GL.createCapabilities();
 		// Clear screen to color
 		GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	}
+	
+	public void update() {
+		// Draw what exists on the framebuffer
+		GLFW.glfwSwapBuffers(window);
+		// Poll for GLFW events like window close or keyboard input
+		GLFW.glfwPollEvents();
 	}
 	
 	public void destroy() {

@@ -2,9 +2,11 @@ package main;
 
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import render.Display;
+import render.RawModel;
+import render.Renderer;
+import util.Loader;
 
 public class MainGameLoop {
 
@@ -14,13 +16,20 @@ public class MainGameLoop {
 		// Create a display
 		Display d = new Display();
 		
+		// Instance of loader and renderer utilities
+		Loader loader = new Loader();
+		Renderer renderer = new Renderer();
+		
+		// Set up the model
+		float[] positions = { -0.5f, 0.5f, 0f, -0.5f, -0.5f, 0f, 0.5f, 0.5f, 0f, 0.5f, 0.5f, 0f, -0.5f, -0.5f, 0f, 0.5f, -0.5f, 0f };
+		RawModel model = loader.loadToVao(positions);
+		
 		// Run the rendering loop until the user has attempted to close
-		// the window or has pressed the ESCAPE key
+		// the window or has pressed the escape key
 		while (!GLFW.glfwWindowShouldClose(d.window)) {
-			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT); // Clear the window
-			GLFW.glfwSwapBuffers(d.window); // Pop it out of memory and on the screen
-			// Poll for GLFW events
-			GLFW.glfwPollEvents();
+			renderer.prepare();
+			renderer.render(model);
+			d.update();
 		}
 		
 		// Destroy the window and clean up memory
