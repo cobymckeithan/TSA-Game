@@ -1,6 +1,7 @@
 package util;
 
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +20,13 @@ public class Loader {
 	private List<Integer> vbos = new ArrayList<Integer>();
 	private List<Integer> textures = new ArrayList<Integer>();
 
-	public RawModel loadToVao(float[] positions) {
+	public RawModel loadToVao(float[] positions, int[] indices) {
 		// Load model data into OpenGL
 		int vaoID = createVao();
+		bindIndexBuffer(indices);
 		storeDataInAttributeList(0, 3, positions);
 		unbindVao();
-		return new RawModel(vaoID, positions.length / 3);
+		return new RawModel(vaoID, indices.length);
 	}
 	
 	public void cleanUp() {
@@ -70,11 +72,29 @@ public class Loader {
 		GL30.glBindVertexArray(0);
 	}
 	
+	private void bindIndexBuffer(int[] indices) {
+		// Gen index fbo
+		int vboID = GL15.glGenBuffers();
+		vbos.add(vboID);
+		// Store array in buffer
+		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vboID);
+		IntBuffer indexBuffer = storeDataInIntBuffer(indices);
+		GL15.glBufferData(GL15.GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL15.GL_STATIC_DRAW);
+	}
+	
 	private FloatBuffer storeDataInFloatBuffer(float[] data) {
 		// Create a buffer and write data
 		FloatBuffer buffer = BufferUtils.createFloatBuffer(data.length);
 		buffer.put(data);
 		// Flip and return for reading
+		buffer.flip();
+		return buffer;
+	}
+	
+	private IntBuffer storeDataInIntBuffer(int[] data) {
+		// See floatbuffer page for documentation
+		IntBuffer buffer = BufferUtils.createIntBuffer(data.length);
+		buffer.put(data);
 		buffer.flip();
 		return buffer;
 	}

@@ -21,8 +21,9 @@ public class MainGameLoop {
 		Renderer renderer = new Renderer();
 		
 		// Set up the model
-		float[] positions = { -0.5f, 0.5f, 0f, -0.5f, -0.5f, 0f, 0.5f, 0.5f, 0f, 0.5f, 0.5f, 0f, -0.5f, -0.5f, 0f, 0.5f, -0.5f, 0f };
-		RawModel model = loader.loadToVao(positions);
+		float[] positions = { -0.5f, 0.5f, 0f, -0.5f, -0.5f, 0f, 0.5f, -0.5f, 0f, 0.5f, 0.5f, 0f };
+		int[] indices = { 0, 1, 3, 3, 1, 2 };
+		RawModel model = loader.loadToVao(positions, indices);
 		
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the escape key
