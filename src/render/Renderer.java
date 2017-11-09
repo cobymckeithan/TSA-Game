@@ -4,6 +4,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
+import shaders.ShaderProgram;
+
 public class Renderer {
 
 	public void prepare() {
@@ -12,7 +14,9 @@ public class Renderer {
 		GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
-	public void render(RawModel model) {
+	public void render(RawModel model, ShaderProgram shader) {
+		// Start shader
+		shader.start();
 		// Bind array and enable the attributes we need
 		GL30.glBindVertexArray(model.vaoID);
 		GL20.glEnableVertexAttribArray(0);
@@ -21,6 +25,8 @@ public class Renderer {
 		// Unbind array and disable the attributes
 		GL20.glDisableVertexAttribArray(0);
 		GL30.glBindVertexArray(0);
+		// Stop shader
+		shader.stop();
 	}
 	
 }
