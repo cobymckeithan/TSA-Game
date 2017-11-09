@@ -1,5 +1,7 @@
 package util;
 
+import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -10,6 +12,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.stb.STBImage;
+import org.lwjgl.system.MemoryStack;
 
 import render.RawModel;
 
@@ -52,6 +56,62 @@ public class Loader {
 		GL30.glBindVertexArray(vaoID);
 		return vaoID;
 	}
+	
+	public int loadTexture(String path) {
+		// TODO This seems hacky, see if there's a better way
+		String fullPath = Class.class.getResource(path).getPath();
+		File tempFile = new File(fullPath);
+		fullPath = tempFile.getAbsolutePath();
+		// %20s are spaces
+		fullPath = fullPath.replace("%20", " ");
+
+		ByteBuffer image;
+		int width, height;
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			// Prepare image buffers
+			IntBuffer w = stack.mallocInt(1);
+			IntBuffer h = stack.mallocInt(1);
+			IntBuffer comp = stack.mallocInt(1);
+
+			// Load image
+			STBImage.stbi_set_flip_vertically_on_load(true);
+			image = STBImage.stbi_load(fullPath, w, h, comp, 4);
+			if (image == null) {
+				throw new RuntimeException("Failed to load a texture file!\n"
+						+ STBImage.stbi_failure_reason());
+			}
+
+			// Get width and height of image
+			width = w.get();
+			height = h.get();
+		}
+
+		// Create the image in VRAM and return texture id
+		int id = setTextureData(width, height, image);
+		textures.add(id);
+		return id;
+	}
+
+	public int setTextureData(int width, int height, ByteBuffer image) {
+		// Generate a texture to write to
+		int id = GL11.glGenTextures();
+		GL11.glBindTexture(GL11.GL_TEXTURE_2D, id);
+		// Set texture parameters
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S,
+				GL11.GL_REPEAT);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T,
+				GL11.GL_REPEAT);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER,
+				GL11.GL_NEAREST);
+		GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER,
+				GL11.GL_NEAREST);
+		// Upload texture to GPU
+		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, width, height,
+				0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, image);
+
+		return id;
+	}
+
 	
 	private void storeDataInAttributeList(int attributeNumber, int coordinateSize, float[] data) {
 		// Create and bind a VBO 
